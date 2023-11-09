@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_list_app/providers.dart';
@@ -55,14 +56,8 @@ class CustomSideBar extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
               onTap: () async {
-                Navigator.pop(context); // Close the sidebar menu
-
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => LoginPage(),
-                  ),
-                ); // Navigate to the profile page
-
+                Navigator.pop(context);
+                await FirebaseAuth.instance.signOut();
                 _showMessage(context, 'You just logged out');
               },
             ),

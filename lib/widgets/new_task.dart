@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:todo_list_app/models/task.dart';
+import 'package:todo_list_app/services/firestore.dart';
 
 class NewTask extends StatefulWidget {
-  final Function(Task) addTask;
+  // final Function(Task) addTask;
 
-  const NewTask(this.addTask, {Key? key}) : super(key: key);
+  const NewTask({Key? key}) : super(key: key); //this.addTask,
   @override
   State<NewTask> createState() {
     return _NewTaskState();
@@ -14,13 +16,43 @@ class NewTask extends StatefulWidget {
 class _NewTaskState extends State<NewTask> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  Category? selectedCategory; // To store the selected category
+  Category selectedCategory = Category.personal;
+  final FirestoreService _firestoreService = FirestoreService();
+  DateTime selectedDateTime = DateTime.now();
+
+  Future<void> _selectDateAndTime(BuildContext context) async {
+    final DateTime now = DateTime.now();
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: now,
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null) {
+      // ignore: use_build_context_synchronously
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+      );
+      if (pickedTime != null) {
+        setState(() {
+          selectedDateTime = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
+      }
+    }
+  }
 
   void _submitTaskData() {
     final title = _titleController.text;
     final description = _descriptionController.text;
 
-    if (title.isEmpty || description.isEmpty || selectedCategory == null) {
+    if (title.isEmpty || description.isEmpty) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -40,11 +72,16 @@ class _NewTaskState extends State<NewTask> {
       final newTask = Task(
         title: title,
         description: description,
-        date: DateTime.now(),
-        category: selectedCategory!,
+        date: selectedDateTime,
+        category: selectedCategory,
+        isCompleted: false,
       );
-      widget.addTask(newTask); // Call the function to add the task
-      Navigator.pop(context); // Close the bottom sheet
+
+      setState(() {
+        // widget.addTask(newTask);
+        _firestoreService.addTask(newTask);
+        Navigator.pop(context);
+      });
     }
   }
 
@@ -52,43 +89,81 @@ class _NewTaskState extends State<NewTask> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Column(
+      child: Stack(
         children: [
-          TextField(
-            controller: _titleController,
-            maxLength: 50,
-            decoration: InputDecoration(
-              labelText: 'Task Title',
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _titleController,
+                maxLength: 50,
+                decoration: InputDecoration(
+                  labelText: 'Task Title',
+                ),
+              ),
+              TextField(
+                controller: _descriptionController,
+                maxLength: 300,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Task Description',
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              // Dropdown to select the category
+              DropdownButton<Category>(
+                hint: Text('Select Category'),
+                icon: Icon(Icons.arrow_drop_down_circle_outlined),
+                elevation: 10,
+                value: selectedCategory,
+                isExpanded: true,
+                onChanged: (value) {
+                  if (value == null) {
+                    return;
+                  }
+                  setState(() {
+                    selectedCategory = value;
+                  });
+                },
+                items: Category.values
+                    .map((category) => DropdownMenuItem<Category>(
+                          value: category,
+                          child: Text(
+                            category.name,
+                          ),
+                        ))
+                    .toList(),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () => _selectDateAndTime(
+                      context), // Button to select date and time
+                  child: Text(
+                      'Selected Date & Time: ${DateFormat.yMMMd().add_jm().format(selectedDateTime)}'),
+                ),
+              ),
+            ],
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  minimumSize: Size(150, 50),
+                  backgroundColor: Colors.deepPurpleAccent),
+              onPressed: _submitTaskData,
+              child: Text(
+                'Save Task',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          TextField(
-            controller: _descriptionController,
-            maxLength: 50,
-            decoration: InputDecoration(
-              labelText: 'Task Description',
-            ),
-          ),
-          // Dropdown to select the category
-          DropdownButton<Category>(
-            hint: Text('Select Category'),
-            value: selectedCategory,
-            onChanged: (Category? newValue) {
-              setState(() {
-                selectedCategory = newValue;
-              });
-            },
-            items: Category.values
-                .map<DropdownMenuItem<Category>>((Category value) {
-              return DropdownMenuItem<Category>(
-                value: value,
-                child: Text(value.toString().split('.').last),
-              );
-            }).toList(),
-          ),
-
-          ElevatedButton(
-            onPressed: _submitTaskData,
-            child: const Text('Save Task'),
           ),
         ],
       ),

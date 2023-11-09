@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 const uuid = Uuid();
@@ -10,6 +11,8 @@ class Task {
     required this.description,
     required this.date,
     required this.category,
+    this.reference,
+    required this.isCompleted,
   }) : id = uuid.v4();
 
   final String id;
@@ -17,32 +20,34 @@ class Task {
   final String description;
   final DateTime date;
   final Category category;
+  final DocumentReference? reference;
+  bool? isCompleted = false;
 
   // Convert task to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'title': title,
-      'description': description,
-      'date': date.toIso8601String(),
-      'category': category.toString().split('.').last, // Convert enum to string
-    };
-  }
+  // Map<String, dynamic> toJson() {
+  //   return {
+  //     'title': title,
+  //     'description': description,
+  //     'date': date.toIso8601String(),
+  //     'category': category.toString().split('.').last,
+  //   };
+  // }
 
   // Create a task from JSON
-  factory Task.fromJson(Map<String, dynamic> json) {
-    return Task(
-      title: json['title'],
-      description: json['description'],
-      date: DateTime.parse(json['date']),
-      category: _getCategoryFromString(json['category']),
-    );
-  }
+  // factory Task.fromJson(Map<String, dynamic> json) {
+  //   return Task(
+  //     title: json['title'],
+  //     description: json['description'],
+  //     date: DateTime.parse(json['date']),
+  //     category: _getCategoryFromString(json['category']),
+  //   );
+  // }
 
-  // Helper function to convert a string to Category enum
-  static Category _getCategoryFromString(String categoryString) {
-    return Category.values.firstWhere(
-      (e) => e.toString().split('.').last == categoryString,
-      orElse: () => Category.other, // Default to 'other' if not found
-    );
-  }
+  // // Helper function to convert a string to Category enum
+  // static Category _getCategoryFromString(String categoryString) {
+  //   return Category.values.firstWhere(
+  //     (e) => e.toString().split('.').last == categoryString,
+  //     orElse: () => Category.other, // Default to 'other' if not found
+  //   );
+  // }
 }
