@@ -5,19 +5,27 @@ import 'package:todo_list_app/providers.dart';
 import 'package:todo_list_app/screens/login_page.dart';
 import 'package:todo_list_app/screens/tasks.dart';
 
-class CustomSideBar extends StatelessWidget {
+class CustomSideBar extends StatefulWidget {
   const CustomSideBar({super.key});
 
+  @override
+  State<CustomSideBar> createState() => _CustomSideBarState();
+}
+
+class _CustomSideBarState extends State<CustomSideBar> {
   void _showMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
+  User? user = FirebaseAuth.instance.currentUser;
+
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
+    //final userProvider = Provider.of<UserProvider>(context);
 
-    final loggedInUser = userProvider.loggedInUser;
+    //final loggedInUser = userProvider.loggedInUser;
+
     return Padding(
       padding: const EdgeInsets.only(right: 60),
       child: Container(
@@ -26,12 +34,17 @@ class CustomSideBar extends StatelessWidget {
           padding: const EdgeInsets.only(right: 20, top: 60),
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 30.0, bottom: 20),
+              padding: const EdgeInsets.only(left: 30.0),
               child: Text(
-                loggedInUser != null
-                    ? 'Hello, ${loggedInUser.fullName}' // Replace 'name' with the actual field in your user model
-                    : 'Hello, Guest',
+                'Hello, Mariam ',
                 style: TextStyle(fontSize: 24),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 30, bottom: 20),
+              child: Text(
+                '${user?.email}',
+                style: TextStyle(fontSize: 14),
               ),
             ),
             ListTile(

@@ -163,9 +163,8 @@ class TaskItem extends StatelessWidget {
                                   width: 5,
                                 ),
                                 Text(
-                                  "${DateFormat('HH:mm').format(task.date)}  ${DateFormat.yMMMd().format(task.date)}",
-                                  textAlign: TextAlign.right,
-                                  textDirection: ui.TextDirection.rtl,
+                                  "${DateFormat('HH:mm').format(task.date)} \n ${DateFormat.yMMMd().format(task.date)}",
+                                  softWrap: true,
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 13,
